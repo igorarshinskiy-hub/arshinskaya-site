@@ -155,6 +155,7 @@
     display:flex;gap:48px;white-space:nowrap;
     animation:scroll 40s linear infinite;
     font-family:'Fraunces';font-size:18px;color:var(--ink-dim);
+    will-change:transform;
   }
   .marquee-track span{display:inline-flex;align-items:center;gap:48px}
   .marquee-track span::after{content:'✦';color:var(--accent)}
@@ -344,9 +345,53 @@
   .foot a{color:var(--ink-dim);text-decoration:none;margin-left:24px}
   .foot a:hover{color:var(--accent)}
 
-  /* Анимация появления */
-  .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease, transform .8s ease}
-  .reveal.in{opacity:1;transform:none}
+  /* ───── Scroll-margin для якорей (независимо от motion) ───── */
+  section[id]{ scroll-margin-top:80px }
+
+  /* ───── Motion system ───── */
+
+  /* Мгновенные переходы для пользователей с reduce-motion */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      transition-duration:0.01s !important;
+      animation-duration:0.01s !important;
+    }
+  }
+
+  /* Все анимации — только когда пользователь не против motion */
+  @media (prefers-reduced-motion: no-preference){
+
+    /* Reveal при скролле */
+    .reveal{
+      opacity:0;transform:translateY(24px);
+      transition:opacity .7s cubic-bezier(0.16,1,0.3,1),transform .7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.in{ opacity:1;transform:none }
+
+    /* Hero sequence */
+    .hero-seq{
+      opacity:0;transform:translateY(20px);
+      transition:opacity .6s cubic-bezier(0.16,1,0.3,1),transform .6s cubic-bezier(0.16,1,0.3,1);
+    }
+    .hero-seq.in{ opacity:1;transform:none }
+
+    /* Hero-visual: GPU-слой для parallax */
+    .hero-visual{ will-change:transform }
+
+    /* Кнопки — улучшенный hover + тактильный :active */
+    .btn-primary{ transition:transform .15s ease-out,box-shadow .2s }
+    .btn-primary:hover{ transform:translateY(-1px) scale(1.02);box-shadow:0 12px 30px rgba(200,155,60,0.25) }
+    .btn-primary:active{ transform:scale(0.98);transition-duration:.1s }
+    .btn-ghost:active{ transform:scale(0.98);transition:transform .1s ease-out,border-color .2s,background .2s }
+
+    /* Кейсы — border-color уже accent на hover, усиливаем transform */
+    .case{ transition:border-color .3s,transform .3s }
+
+    /* Тарифы — border-color к accent + лёгкий lift */
+    .tier{ transition:border-color .3s,transform .3s }
+    .tier:not(.featured):hover{ border-color:var(--accent);transform:translateY(-2px) }
+    .tier.featured:hover{ transform:translateY(-2px) }
+  }
 </style>
 </head>
 <body>
@@ -371,24 +416,24 @@
 <section class="hero wrap">
   <div class="hero-grid">
     <div>
-      <div class="hero-eyebrow">
+      <div class="hero-eyebrow hero-seq">
         <span class="dot"></span>
         <span class="eyebrow">Набор открыт · поток №14</span>
       </div>
-      <h1>
+      <h1 class="hero-seq">
         Запуск на&nbsp;Wildberries <span class="accent">за&nbsp;60&nbsp;дней</span> — без курсов, <span class="strike">воды</span> и&nbsp;«успешного успеха»
       </h1>
-      <p class="hero-sub lead">
+      <p class="hero-sub lead hero-seq">
         Личное наставничество от&nbsp;действующего селлера с&nbsp;оборотом 30&nbsp;млн ₽ в&nbsp;месяц. Я&nbsp;не&nbsp;продаю мечту&nbsp;— я&nbsp;довожу до&nbsp;первых стабильных продаж по&nbsp;договору.
       </p>
-      <div class="hero-cta-row">
+      <div class="hero-cta-row hero-seq">
         <a href="#cta" class="btn-primary">
           Получить бесплатный разбор ниши
           <span class="btn-arrow">→</span>
         </a>
         <a href="#program" class="btn-ghost">Что внутри программы</a>
       </div>
-      <div class="hero-stats">
+      <div class="hero-stats hero-seq">
         <div>
           <div class="stat-num">7&nbsp;лет</div>
           <div class="stat-label">в&nbsp;продажах на&nbsp;WB</div>
@@ -403,7 +448,7 @@
         </div>
       </div>
     </div>
-    <div class="hero-visual">
+    <div class="hero-visual hero-seq">
       <div class="hero-portrait-placeholder">
         [&nbsp;Здесь&nbsp;—&nbsp;живое&nbsp;фото&nbsp;Ирины&nbsp;<br/>в&nbsp;интерьере&nbsp;ПВЗ&nbsp;или&nbsp;офиса.<br/>4:5,&nbsp;тёплый&nbsp;свет&nbsp;]
       </div>
@@ -837,11 +882,56 @@
 </footer>
 
 <script>
-  // Reveal on scroll
-  const io = new IntersectionObserver(es => {
-    es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target) } });
-  }, {threshold:0.12});
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  // Reveal on scroll — threshold 0.15
+  const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+  // Всё остальное — только при разрешённом motion
+  const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!noMotion) {
+    // Hero sequence: каждый элемент появляется с задержкой 80мс
+    const heroSeqEls = document.querySelectorAll('.hero-seq');
+    heroSeqEls.forEach((el, i) => { el.style.transitionDelay = (i * 80) + 'ms'; });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      heroSeqEls.forEach(el => el.classList.add('in'));
+    }));
+
+    // Параллакс на hero-visual
+    const heroVisual = document.querySelector('.hero-visual');
+    if (heroVisual) {
+      // hero-visual — последний .hero-seq; после завершения его reveal
+      // очищаем transition, чтобы parallax работал без lag
+      const totalDelay = (heroSeqEls.length - 1) * 80 + 700; // delay + duration + buffer
+      setTimeout(() => {
+        heroVisual.style.transition = 'none';
+        heroVisual.style.transitionDelay = '';
+      }, totalDelay);
+
+      // Добавляем parallax только после завершения reveal
+      setTimeout(() => {
+        let rafPending = false;
+        function applyParallax() {
+          if (window.innerWidth >= 1024) {
+            heroVisual.style.transform = 'translateY(' + (window.scrollY * -0.12) + 'px)';
+          } else {
+            heroVisual.style.transform = '';
+          }
+          rafPending = false;
+        }
+        window.addEventListener('scroll', () => {
+          if (!rafPending) { rafPending = true; requestAnimationFrame(applyParallax); }
+        }, { passive: true });
+        window.addEventListener('resize', () => {
+          if (!rafPending) { rafPending = true; requestAnimationFrame(applyParallax); }
+        }, { passive: true });
+      }, totalDelay);
+    }
+  }
 </script>
 
 </body>
