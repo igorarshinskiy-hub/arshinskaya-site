@@ -161,6 +161,8 @@
   @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
   /* ───── Боль / Кому подойдёт ───── */
+  .for-whom-grid{display:grid;grid-template-columns:1fr 2fr;gap:80px;align-items:start}
+  @media (max-width:768px){ .for-whom-grid{grid-template-columns:1fr;gap:48px} }
   .pains{
     display:grid;grid-template-columns:repeat(2,1fr);gap:0;
     border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
@@ -186,6 +188,7 @@
   .program{display:grid;grid-template-columns:1fr 1.4fr;gap:80px;align-items:start}
   @media (max-width:1024px){ .program{grid-template-columns:1fr;gap:48px} }
   .program-sticky{position:sticky;top:120px}
+  @media (max-width:1024px){ .program-sticky{position:static;top:auto} }
   .week{
     padding:32px 0;border-top:1px solid var(--line);
     display:grid;grid-template-columns:80px 1fr;gap:32px;align-items:start;
@@ -437,7 +440,7 @@
 
 <!-- ДЛЯ КОГО -->
 <section class="wrap" id="for-whom">
-  <div style="display:grid;grid-template-columns:1fr 2fr;gap:80px;align-items:start" class="reveal">
+  <div class="for-whom-grid reveal">
     <div>
       <div class="eyebrow" style="margin-bottom:20px">01 / Для&nbsp;кого</div>
       <h2>Подойдёт тем,<br/>кому надоело<br/>читать статьи</h2>
