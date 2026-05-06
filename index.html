@@ -114,7 +114,7 @@
 
   /* ───── Шрифтовая иерархия ───── */
   h1,h2,h3{font-family:'Fraunces', Georgia, serif;font-weight:500;letter-spacing:-0.02em;line-height:1.05}
-  h1{font-size:clamp(40px, 6vw, 84px)}
+  h1{font-size:clamp(36px, 5.5vw, 76px)}
   h2{font-size:clamp(32px, 4.4vw, 60px)}
   h3{font-size:clamp(20px, 2vw, 26px)}
   .eyebrow{
@@ -151,10 +151,11 @@
 
   /* ───── HERO ───── */
   .hero{
-    min-height:100vh;display:flex;align-items:center;
-    padding:140px 0 80px;border-top:none;
+    min-height:80vh;display:flex;align-items:center;
+    padding:100px 0 60px;border-top:none;
     position:relative;overflow:hidden;
   }
+  @media (max-width:768px){ .hero{padding:80px 0 40px} }
   .hero-grid{
     display:grid;grid-template-columns:1.2fr 0.9fr;gap:80px;align-items:center;
   }
